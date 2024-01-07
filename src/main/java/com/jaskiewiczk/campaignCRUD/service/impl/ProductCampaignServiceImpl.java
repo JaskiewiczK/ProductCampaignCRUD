@@ -1,5 +1,6 @@
 package com.jaskiewiczk.campaignCRUD.service.impl;
 
+import com.jaskiewiczk.campaignCRUD.exception.ProductCampaignNotFoundException;
 import com.jaskiewiczk.campaignCRUD.model.ProductCampaignModel;
 import com.jaskiewiczk.campaignCRUD.repository.ProductCampaignRepository;
 import com.jaskiewiczk.campaignCRUD.service.ProductCampaignService;
@@ -8,7 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class ProductCampaignServiceImpl implements ProductCampaignService {
@@ -42,8 +43,10 @@ public class ProductCampaignServiceImpl implements ProductCampaignService {
 
     @Override
     public ProductCampaignModel getProductCampaign(Long id) {
-        Optional<ProductCampaignModel> optionalProductCampaign = productCampaignRepository.findById(id);
-        return optionalProductCampaign.orElse(null);
+        if(productCampaignRepository.findById(id).isEmpty()){
+            throw new ProductCampaignNotFoundException("Requested product campaign does not exist");
+        }
+        return productCampaignRepository.findById(id).get();
     }
 
     @Override
