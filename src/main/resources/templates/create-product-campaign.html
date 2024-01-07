@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.1/css/bootstrap.min.css}" />
+    <script>
+    function submitForm() {
+     event.preventDefault();
+
+        var formData = {
+            name: $("#name").val(),
+            keywords: $("#keywords").val().split(",").map(keyword => keyword.trim()),
+            bidAmount: $("#bidAmount").val(),
+            campaignFund: $("#campaignFund").val(),
+            status: $("#status").prop("checked"),
+            town: $("#town").val(),
+            radius: $("#radius").val()
+        };
+
+
+        $.ajax({
+            url: "/api/product-campaign/",
+            method: "POST",
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify(formData),
+            success: function(response) {
+                window.location.href = "/";
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+</script>
+
+
+
+</head>
+<body>
+<div class="container">
+    <div class="row mt-2">
+        <div class="col-2">
+            <p>
+                <a class="btn btn-outline-success" href="/">
+                    Back
+                </a>
+            </p>
+        </div>
+        <div class="col-6">
+            <h3>Create product campaign</h3>
+        </div>
+
+        <form id="productCampaignForm"  th:onsubmit="submitForm()">
+
+            <script>
+  let currentInput = "";
+
+  function getSuggestions(input) {
+    if (input.endsWith(",")) {
+      currentInput = "";
+    } else {
+      const parts = input.split(",");
+      currentInput = parts[parts.length - 1].trim();
+    }
+    fetch(`/api/campaign-keywords/${currentInput}`)
+      .then(response => response.json())
+      .then(data => displaySuggestions(data))
+      .catch(error => console.error("Error fetching suggestions:", error));
+  }
+
+  function displaySuggestions(suggestions) {
+    const suggestionList = document.getElementById("suggestionList");
+    suggestionList.innerHTML = "";
+
+    suggestions.forEach(suggestion => {
+      const li = document.createElement("li");
+      li.textContent = suggestion;
+      suggestionList.appendChild(li);
+    });
+  }
+</script>
+
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required/><br>
+
+            <label for="keywords">Keywords (comma-separated):</label>
+            <input type="text" id="keywords" name="keywords"  oninput="getSuggestions(this.value)" required/><br>
+            <ul id="suggestionList"></ul>
+
+            <label for="bidAmount">Bid Amount:</label>
+            <input type="number" step="any" id="bidAmount" name="bidAmount" required  min="0.50" onkeyup="if(value<0.50) value=0.50;"><br>
+
+
+            <label for="campaignFund">Campaign Fund:</label>
+            <input type="number" step="0.01" id="campaignFund" name="campaignFund"  th:max="${sampleUser.funds}" required><br>
+
+
+
+            <label for="town">Town:</label>
+            <select id="town" name="town"  onclick="populateDropdown()" required></select>
+
+            <script>
+
+    function populateDropdown() {
+
+        fetch(`/api/campaign-towns`)
+        .then(response => response.json())
+        .then(data => displayDropdown(data))
+        .catch(error => console.error("Error fetching suggestions:", error));
+        }
+
+        function displayDropdown(townOptions){
+            var dropdown = document.getElementById("town");
+            dropdown.innerHTML = "";
+             for (var i = 0; i < townOptions.length; i++) {
+            var option = document.createElement("option");
+            option.value = townOptions[i];
+            option.text = townOptions[i];
+            dropdown.add(option);
+        }
+
+         document.getElementById("town").removeAttribute("onclick");
+
+
+
+    }
+
+
+</script>
+            <br>
+
+            <label for="radius">Radius:</label>
+            <input type="number" id="radius" name="radius" required><br>
+
+            <button class="btn btn-primary"  >Submit</button>
+        </form>
+
+    </div>
+</div>
+</body>
+</html>

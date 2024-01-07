@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.1/css/bootstrap.min.css}" />
+
+    <script>
+    function deleteResource(id) {
+        $.ajax({
+            url: "/api/product-campaign/" + id,
+            method: "DELETE",
+            success: function(response) {
+                window.location.href = "/";
+            },
+            error: function(error) {
+                console.error(error.responseText);
+            }
+        });
+
+    }
+    </script>
+
+
+    <script>
+    function editResource(id) {
+        $.ajax({
+            url: "/api/product-campaign/" + id,
+            method: "PUT",
+            success: function(response) {
+                window.location.href = "/";
+            },
+            error: function(error) {
+                console.error(error.responseText);
+            }
+        });
+    }
+    </script>
+
+    <script>
+        function setStatusOfResource(id) {
+        $.ajax({
+            url: "/api/product-campaign/" + id,
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+
+                response.status = true;
+
+
+                $.ajax({
+                    url: "/api/product-campaign/payment/" + id,
+                    method: "PUT",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify(response),
+                    success: function(updateResponse) {
+                        window.location.href = "/";
+                    },
+                    error: function(updateXhr, updateStatus, updateError) {
+                        console.error(updateError);
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+
+    </script>
+
+</head>
+<body>
+<div class="container">
+    <h1>Product campaign list</h1>
+    <hr />
+    <h2> Logged as <span th:text="${sampleUser.username}"></span> </h2>
+    <hr />
+    <h2> Account balance: <span th:text="${sampleUser.funds}"></span> </h2>
+    <hr />
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Campaign actions</th>
+            <th>Name</th>
+            <th>Keywords</th>
+            <th>Bid amount</th>
+            <th>Campaign Fund</th>
+            <th>Status</th>
+            <th>Town</th>
+            <th>Radius</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="productCampaign : ${productCampaigns}">
+            <td>
+                <div class="btn btn-group-sm" role="group">
+
+                    <a th:href="@{/product-campaign/edit/{id}(id=${productCampaign.id})}" class="btn btn-info" role="button" th:if="${not productCampaign.status}">
+                        Edit
+                    </a>
+
+                    <form id="deleteForm" th:if="${not productCampaign.status}">
+                        <button class="btn btn-danger" type="button" th:onclick="'javascript:deleteResource(' + ${productCampaign.id} + ')'">Delete</button>
+                    </form>
+
+
+                    <form id="statusForm" th:if="${not productCampaign.status}">
+                        <button class="btn btn-success" type="button" th:onclick="'javascript:setStatusOfResource(\'' + ${productCampaign.id} + '\')'">
+                            Start campaign
+                        </button>
+                    </form>
+
+                    <span th:if="${productCampaign.status}" th:text="'Campaign in progress'"></span>
+
+
+
+
+
+                </div>
+            </td>
+            </td>
+            <td th:text="${productCampaign.name}"></td>
+            <td>
+                <span th:each="keyword, iterStat : ${productCampaign.keywords}">
+                    <span th:text="${keyword}"></span>
+                    <span th:if="${!iterStat.last}">, </span>
+                </span>
+            </td>
+
+            <td th:text="${productCampaign.bidAmount}"></td>
+            <td th:text="${productCampaign.campaignFund}"></td>
+            <td>
+                <span th:if="${productCampaign.status} == true" th:text="On" />
+                <span th:unless="${productCampaign.status} == true" th:text="Off" />
+            </td>
+            <td th:text="${productCampaign.town}"></td>
+            <td th:text="${productCampaign.radius}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a th:if="${sampleUser.funds > 0}" th:href="@{/product-campaign/create}" class="btn btn-info" role="button">
+        Create a new product campaign
+    </a>
+
+    <p th:unless="${sampleUser.funds > 0}">No funds on bank account</p>
+</div>
+</body>
+</html>
